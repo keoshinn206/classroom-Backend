@@ -9,7 +9,7 @@ import { db } from "../db/index.js";
 
 const router = express.Router();
 
-router.get("/api/departments", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const {
       search,
@@ -18,8 +18,9 @@ router.get("/api/departments", async (req, res) => {
       limit = 10,
     } = req.query;
 
-    const currentPage = Math.max(1, Number(page));
-    const limitPerpage = Math.max(1, Number(limit));
+    
+    const currentPage = Math.max(1, parseInt(String(page), 10) || 1);
+    const limitPerpage = Math.max(1, parseInt(String(limit), 10) || 10);
     const offset = (currentPage - 1) * limitPerpage;
 
     const filterConditions = [];
@@ -35,6 +36,8 @@ router.get("/api/departments", async (req, res) => {
 
     if (departmentQuery) {
       filterConditions.push(ilike(department.name, `%${departmentQuery}%`));
+      const deptPattern = `%${String(department).replace(/[%_]/g, `\\$&`)}%`;
+      filterConditions.push(ilike(departmentTable.name, deptPattern));
     }
 
     const whereClause =
