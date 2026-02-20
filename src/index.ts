@@ -1,16 +1,26 @@
+import { cors } from 'cors';
+import { demoUsers } from './db/schema/app.js';
 import "dotenv/config";
 import express from "express";
 import { defineConfig } from "drizzle-kit";
 import { eq } from "drizzle-orm";
 // The 'pool' export will only exist for WebSocket and node-postgres drivers
 import { db } from "./db/index.js";
-import { demoUsers } from './db/schema/index.js';
+import subjectsrouter from "./routes/subjects.js";
 
 const app = express();
 const PORT = 8000;
 
+app.use(cors({
+  origin: process.env.FRONTEND_URL ,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials : true,
+}))
+
 // Middleware
 app.use(express.json());
+
+app.use('/api/subjects', subjectsrouter)
 
 // Root GET route
 app.get("/", (req, res) => {

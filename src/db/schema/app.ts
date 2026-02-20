@@ -1,6 +1,8 @@
-import { Many, relations } from "drizzle-orm";
+// src/db/schema/index.ts
 import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
+// Common timestamps
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -8,6 +10,8 @@ const timestamps = {
     .$onUpdate(() => new Date())
     .notNull(),
 };
+
+// Department table
 export const department = pgTable("department", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   code: varchar("code", { length: 50 }).notNull().unique(),
@@ -15,6 +19,8 @@ export const department = pgTable("department", {
   description: varchar("description", { length: 255 }),
   ...timestamps,
 });
+
+// Subjects table
 export const subjects = pgTable("subjects", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   departmentId: integer("department_id")
@@ -26,25 +32,29 @@ export const subjects = pgTable("subjects", {
   ...timestamps,
 });
 
-// Define the relationship: one department can have many subjects
+// Users table for demo
+export const demoUsers = pgTable("users", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  ...timestamps,
+});
+
+// Relations
 export const departmentRelations = relations(department, ({ many }) => ({
   subjects: many(subjects),
 }));
 
-// Define the reverse relationship: each subject belongs to one department
-// Links subjects.departmentId to department.id
-export const subjectRelation = relations(subjects, ({ one, many }) => ({
+export const subjectRelations = relations(subjects, ({ one }) => ({
   department: one(department, {
     fields: [subjects.departmentId],
     references: [department.id],
   }),
 }));
 
-// Automatically infer the TypeScript type for inserting a new department record
+// TypeScript types
 export type Department = typeof department.$inferInsert;
-// Type for creating a new department (inferred from the department table schema)
 export type NewDepartment = typeof department.$inferInsert;
-// Type for creating a new subject (inferred from the subjects table schema)
 export type Subject = typeof subjects.$inferInsert;
-// Type for creating a new subject (inferred from the subjects table schema)
 export type NewSubject = typeof subjects.$inferInsert;
+export type User = typeof demoUsers.$inferInsert;
